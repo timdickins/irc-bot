@@ -1,6 +1,7 @@
 import socket
 import sys
 import threading
+import re
 
 class Socket (threading.Thread):
 
@@ -12,7 +13,7 @@ class Socket (threading.Thread):
         self.IDENT = "targebot"
         self.REALNM = "TargeBot"
         self.read_buffer = ""
-        self.channel = "#tl.dota"
+        self.channel = "#testtarge"
 
         self.my_socket = socket.socket()
 
@@ -25,14 +26,17 @@ class Socket (threading.Thread):
         while 1:
             self.read_buffer = self.read_buffer + self.my_socket.recv(1024).decode("UTF-8")
             temp_string = str.split(self.read_buffer, "\n")
-            self.read_buffer = temp_string.pop()
+            temp_string = re.split('\r|\n', self.read_buffer)
+            #self.read_buffer = temp_string.pop()
+			
             print(temp_string)
 
-            for ln in temp_string:
-                ln = str.rstrip(ln)
-                ln = str.split(ln)
-                if(ln[0] == "PING"):
-                    self.my_socket.send(bytes("PONG %s\r\n" % ln[1], "UTF-8"))
+            if "PING" in temp_string:
+                for ln in temp_string:
+                    ln = str.rstrip(ln)
+                    ln = str.split(ln)
+                    if(ln[0] == "PING"):
+                        self.my_socket.send(bytes("PONG %s\r\n" % ln[1], "UTF-8"))
     
     def set_host(self, new_host):
         self.HOST = new_host
