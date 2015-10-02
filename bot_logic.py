@@ -5,11 +5,11 @@ import re
 
 class Socket (threading.Thread):
 
-    def __init__(self, HOST, PORT):
+    def __init__(self, host, port):
         threading.Thread.__init__(self)
-        self.HOST = HOST
-        self.PORT = PORT
-        self.NICK = "TargeBot"
+        self.host = host
+        self.port = port
+        self.nick = "TargeBot"
         self.IDENT = "targebot"
         self.REALNM = "TargeBot"
         self.read_buffer = ""
@@ -18,9 +18,9 @@ class Socket (threading.Thread):
         self.my_socket = socket.socket()
 
     def connect(self):
-        self.my_socket.connect((self.HOST, self.PORT))
-        self.my_socket.send(bytes("NICK %s\r\n" % self.NICK, "UTF-8"))
-        self.my_socket.send(bytes("USER %s %s place_text :%s\r\n" % (self.IDENT, self.HOST, self.REALNM), "UTF-8"))
+        self.my_socket.connect((self.host, self.port))
+        self.my_socket.send(bytes("nick %s\r\n" % self.nick, "UTF-8"))
+        self.my_socket.send(bytes("USER %s %s place_text :%s\r\n" % (self.IDENT, self.host, self.REALNM), "UTF-8"))
 
     def run(self):
         while 1:
@@ -29,23 +29,24 @@ class Socket (threading.Thread):
             temp_string = re.split('\r|\n', self.read_buffer)
             #self.read_buffer = temp_string.pop()
 			
-            print(temp_string)
+            #print(temp_string)
 
-            if "PING" in temp_string:
-                for ln in temp_string:
-                    ln = str.rstrip(ln)
-                    ln = str.split(ln)
-                    if(ln[0] == "PING"):
-                        self.my_socket.send(bytes("PONG %s\r\n" % ln[1], "UTF-8"))
+            while len(temp_string)>0:
+                server_message = temp_string.pop(0)
+                print(server_message)
+                if "PING :" in server_message:
+                    #pong_int = string.replace(server_message, "PING :", "")
+                    pong_int = server_message.replace("PING :", "")
+                    self.pong_send(int(pong_int))
     
     def set_host(self, new_host):
-        self.HOST = new_host
+        self.host = new_host
 
     def set_port(self, new_port):
-        self.PORT = new_port
+        self.port = new_port
 
     def set_nick(self, new_nick):
-        self.NICK = new_nick
+        self.nick = new_nick
 
     def set_ident(self, new_ident):
         self.IDENT = new_ident
@@ -54,13 +55,13 @@ class Socket (threading.Thread):
         self.REALNM = new_name
 
     def get_host(self):
-        return self.HOST
+        return self.host
 
     def get_port(self):
-        return self.PORT
+        return self.port
 
     def get_nick(self):
-        return self.NICK
+        return self.nick
 
     def get_ident(self):
         return self.IDENT
@@ -73,6 +74,9 @@ class Socket (threading.Thread):
         
     def join_channel(self):
         self.my_socket.send(bytes("JOIN %s\r\n" % self.channel, "UTF-8"))
+		
+    def pong_send(self, pong_int):
+        self.my_socket.send(bytes("PONG %s\r\n" % pong_int, "UTF-8"))
         
 class User_reader(threading.Thread):
     
