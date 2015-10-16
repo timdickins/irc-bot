@@ -2,6 +2,7 @@ import socket
 import sys
 import threading
 import re
+import command
 
 class Socket (threading.Thread):
 
